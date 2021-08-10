@@ -34,6 +34,7 @@ import serial
 import sys
 import glob
 import msvcrt
+
 class ArduinoSerial:
     ser = None
 
@@ -105,10 +106,13 @@ class ArduinoSerial:
             return False
         self.ser.write(str.encode())
 
+    def SendDegree(self, degree):
+        pass
+
     #def MoveWithDegree(self, degree):
         
 
-
+"""
 def main():
     arduino = ArduinoSerial()
     arduino.Setup()
@@ -123,10 +127,11 @@ def main():
         if(key == b'w'):
             arduino.SendStr("70.70.0.1.end")
         if(key == b'd'):
-            arduino.SendStr("0.100.0.1.end")
+            arduino.SendStr("70.255.0.1.end")
         if(key == b'a'):
-            arduino.SendStr("100.0.0.1.end")
+            arduino.SendStr("255.70.0.1.end")
         if(key == b's'):
             arduino.SendStr("70.70.1.0.end")
 
 main()
+"""

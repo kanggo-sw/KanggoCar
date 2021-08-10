@@ -3,10 +3,12 @@ import cv2
 import sys
 import math
 import copy
-import serial
+import ArduinoSerial
+
+#arduino = ArduinoSerial()
+#arduino.Setup()
 
 
-degree = []
 def region_of_interest(img, vertices):
     mask = np.zeros_like(img)
     if len(img.shape) > 2:
@@ -23,14 +25,16 @@ def makeLine(orinImg, img, rho, theta, threshold, min_line_len, max_line_gap):
 
 
     lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
-    degree = []
     if type(lines) == type(np.array([])):
         lines = lines.tolist()
         for line in lines:
-            for x1, y1, x2, y2 in line:
-                cv2.line(orinImg, (x1, y1), (x2, y2), [255, 0, 0], 2)
-                y1 = src.shape[0] - y1
-                y2 = src.shape[0] - y2
+            for y1, x1, y2, x2 in line:
+                cv2.line(orinImg, (y1, x1), (y2, x2), [255, 0, 0], 2)
+
+                x1 = src.shape[0] - x1
+                x2 = src.shape[0] - x2
+                y1 = src.shape[1] - y1
+                y2 = src.shape[1] - y2
                 if x1 != x2:
                     degree.append(math.degrees(math.atan((y2 - y1) / (x2 - x1))))
 
@@ -38,9 +42,9 @@ capture = cv2.VideoCapture(1)
 capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-#ser = serial.Serial("COM3", 115200, timeout=1)
-
 while cv2.waitKey(33) < 0:
+    degree = []
+
     ret, src = capture.read()
     #src = cv2.imread('blackBox.jpg')
 
@@ -82,7 +86,7 @@ while cv2.waitKey(33) < 0:
 
     rho = 1
     theta = np.pi / 180
-    threshold = 160
+    threshold = 30
     min_line_len = 120
     max_line_gap = 150
     makeLine(src, masked_edge, rho, theta, threshold, min_line_len, max_line_gap)
@@ -91,30 +95,34 @@ while cv2.waitKey(33) < 0:
     for n, i in zip(range(len(degree)), degree):
         if i < 0:
             degree[n] += 180
-    temp = []
 
+    temp = []
     for i in degree:
         if i > 20:
             temp.append(i)
     degree = copy.deepcopy(temp)
+
+    degree.sort()
+    tolerance = []
+    l = len(degree) - 1
+    for i in range(l * (l > 0)):
+        tolerance.append(degree[i + 1] - degree[i])
+
     if len(degree) != 0:
-        s = sum(degree) / len(degree)
-        d1 = []
-        d2 = []
-        for i in degree:
-            if i < s:
-                d1.append(i)
-            else:
-                d2.append(i)
+        temp = tolerance.index(max(tolerance))
+        d1 = degree[:temp + 1]
+        d2 = degree[temp + 1:]
+
         d1 = sum(d1) / len(d1)
         d2 = sum(d2) / len(d2)
     else:
         d1 = 90
         d2 = 90
-    
+
+    print((d1 + d2) / 2)
     #시리얼 통신
-    op = str((d1 + d2) / 2)
-    #ser.write(op.encode())
+    #op = str((d1 + d2) / 2)
+    #arduino.SendDegree((d1 + d2) / 2)
 
     #cv2.imshow('range', masked_src)
     cv2.imshow('imgray', imgray)
