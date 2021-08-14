@@ -33,13 +33,17 @@ main()
 import serial
 import sys
 import glob
-import msvcrt
+import asyncio
 
-class ArduinoSerial:
+class Arduino:
     ser = None
+    Turning = False
+    degree = 90
 
     def __init__(self):
         self.ser = None
+        self.Turning = False
+        self.degree = 90
 
     def serial_ports(self):
         if sys.platform.startswith('win'):
@@ -90,12 +94,15 @@ class ArduinoSerial:
                 break
             print("다시 입력해주세요.")
 
-        print("포트 : " + list[port - 1] + ", 보드레이트 : " + boardrate_s + " 으(로) 연결합니다.")
+        print("포트 : " + list[port - 1] + ", 보드레이트 : " + boardrate_s + " 으(로) 연결을 시도합니다.")
         try:
             self.ser = serial.Serial(list[port - 1], boardrate)
         except PermissionError as e:
             print("포트를 열 수 없습니다!")
             return False
+        self.SendStr("0.0.0.0.end")
+        print("연결되었습니다.")
+        self.SendStr("60.60.0.1.end")
         return True
 
     def SetupWithoutSelect(self, serialport, boardrate):
@@ -107,8 +114,31 @@ class ArduinoSerial:
         self.ser.write(str.encode())
 
     def SendDegree(self, degree):
-        pass
+        self.degree = degree
+        if(degree is 90.0):
+            #선이 없을 경우 정지
+            self.SendStr("0.0.0.0.end")
 
+        if(degree < 85):
+            #오른쪽
+            self.SendStr("0.0.0.0.end")
+
+        elif(degree > 95):
+            #왼쪽
+            if(self.Turning):
+                return
+            self.SendStr("0.0.0.0.end")
+            self.Turning = True
+            loop = asyncio.get_event_loop()
+            task = loop.create_task(
+                self.turn_left()
+            )
+
+    async def turn_left(self):
+        asyncio.sleep(1)
+        print("ㄲ")
+
+    
     #def MoveWithDegree(self, degree):
         
 

@@ -5,8 +5,8 @@ import math
 import copy
 import ArduinoSerial
 
-#arduino = ArduinoSerial()
-#arduino.Setup()
+arduino = ArduinoSerial.Arduino()
+arduino.Setup()
 
 
 def region_of_interest(img, vertices):
@@ -78,7 +78,9 @@ while cv2.waitKey(33) < 0:
 
     imshape = edge.shape
 
-    vertices = np.array([[(850, 100), (850, 600), (0, 700), (0, 50)]], dtype=np.int32)
+    vertices = np.array([[(850, 100), (850, 600), (400, 700), (400, 50)]], dtype=np.int32)
+
+
 
     masked_edge = region_of_interest(edge, vertices)
 
@@ -109,7 +111,11 @@ while cv2.waitKey(33) < 0:
         tolerance.append(degree[i + 1] - degree[i])
 
     if len(degree) != 0:
-        temp = tolerance.index(max(tolerance))
+        try:
+            temp = tolerance.index(max(tolerance))
+        except ValueError as e:
+            print("error")
+            continue
         d1 = degree[:temp + 1]
         d2 = degree[temp + 1:]
 
@@ -122,7 +128,7 @@ while cv2.waitKey(33) < 0:
     print((d1 + d2) / 2)
     #시리얼 통신
     #op = str((d1 + d2) / 2)
-    #arduino.SendDegree((d1 + d2) / 2)
+    arduino.SendDegree((d1 + d2) / 2)
 
     #cv2.imshow('range', masked_src)
     cv2.imshow('imgray', imgray)
