@@ -21,10 +21,10 @@ def region_of_interest(img, vertices):
 
     return cv2.bitwise_and(img, mask)
 
+
 def makeLine(orinImg, img, rho, theta, threshold, min_line_len, max_line_gap):
-
-
-    lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
+    lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len,
+                            maxLineGap=max_line_gap)
     if type(lines) == type(np.array([])):
         lines = lines.tolist()
         for line in lines:
@@ -38,6 +38,7 @@ def makeLine(orinImg, img, rho, theta, threshold, min_line_len, max_line_gap):
                 if x1 != x2:
                     degree.append(math.degrees(math.atan((y2 - y1) / (x2 - x1))))
 
+
 capture = cv2.VideoCapture(1)
 capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -46,7 +47,7 @@ while cv2.waitKey(33) < 0:
     degree = []
 
     ret, src = capture.read()
-    #src = cv2.imread('blackBox.jpg')
+    # src = cv2.imread('blackBox.jpg')
 
     if src is None:
         print('Image load failed!')
@@ -80,11 +81,7 @@ while cv2.waitKey(33) < 0:
 
     vertices = np.array([[(850, 100), (850, 600), (400, 700), (400, 50)]], dtype=np.int32)
 
-
-
     masked_edge = region_of_interest(edge, vertices)
-
-
 
     rho = 1
     theta = np.pi / 180
@@ -126,11 +123,11 @@ while cv2.waitKey(33) < 0:
         d2 = 90
 
     print((d1 + d2) / 2)
-    #시리얼 통신
-    #op = str((d1 + d2) / 2)
+    # 시리얼 통신
+    # op = str((d1 + d2) / 2)
     arduino.SendDegree((d1 + d2) / 2)
 
-    #cv2.imshow('range', masked_src)
+    # cv2.imshow('range', masked_src)
     cv2.imshow('imgray', imgray)
     cv2.imshow('edge', edge)
     # cv2.imshow('masked_edge', masked_edge)
